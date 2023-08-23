@@ -1,0 +1,32 @@
+{
+  "name": "create-mexn-backend",
+  "version": "1.0.0",
+  "description": "Generate a backend for an app using MERN/MEAN stack.",
+  "main": "index.js",
+  "bin": {
+    "create-mexn-backend": "./index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abelikoff/create-mexn-backend.git"
+  },
+  "keywords": [
+    "backend",
+    "MEAN",
+    "MERN",
+    "generator"
+  ],
+  "author": "Alexander L. Belikoff",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/abelikoff/create-mexn-backend/issues"
+  },
+  "homepage": "https://github.com/abelikoff/create-mexn-backend#readme",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.0.0"
+  }
+}
