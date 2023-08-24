@@ -1,6 +1,7 @@
 {
   "name": "create-mexn-backend",
   "version": "1.0.0",
+  "type": "module",
   "description": "Generate a backend for an app using MERN/MEAN stack.",
   "main": "index.js",
   "bin": {
@@ -26,7 +27,8 @@
   },
   "homepage": "https://github.com/abelikoff/create-mexn-backend#readme",
   "dependencies": {
-    "chalk": "^4.1.2",
-    "commander": "^11.0.0"
+    "chalk": "^5.3.0",
+    "commander": "^11.0.0",
+    "template-file": "^6.0.1"
   }
 }

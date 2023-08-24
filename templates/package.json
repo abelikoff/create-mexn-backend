@@ -1,0 +1,3 @@
+foo
+
+The name of this app is {{ app_name }}
