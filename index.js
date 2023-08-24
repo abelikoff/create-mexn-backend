@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-//import { program } from 'commander';
+import { program } from 'commander';
 import template_file from 'template-file';
 const { renderFile } = template_file;
 import fs from 'fs';
@@ -22,12 +22,87 @@ const getFileList = (dirName) => {
     return files;
 };
 
+const getEntityList = (args) => {
+    let result = [];
+    let failed = false;
 
-const data = {
-    app_name: 'foobar',
-    location: { name: 'Nashville' },
-    adjective: 'cool',
-};
+    for (const item of args) {
+        if (item.charAt(0) !== item.charAt(0).toUpperCase()) {
+            logError(`Entity '${item}' is not properly capitalized`);
+            failed = true;
+            continue;
+        }
+
+        if (result.find((entity) => { return entity === item })) {
+            logError(`Duplicate entity: '${item}'`);
+            failed = true;
+            continue;
+        }
+
+        if (item === 'Users') {
+            logError(`Entity '${item}': you probably meant 'User'`);
+            failed = true;
+            continue;
+        }
+
+        if (item === 'User') {      // ignore explicitly specified User entity
+            continue;
+        }
+
+        result.push(item);
+    }
+
+    if (failed) {
+        process.exit(1);
+    }
+
+    return result;
+}
+
+
+const expandFilename = (originalPath, entityName) => {
+    let newPath = originalPath;
+
+    newPath = newPath.replace('@@@Entity@@@', entityName);
+    newPath = newPath.replace('@@@Entities@@@', entityName + 's');
+    newPath = newPath.replace('@@@entity@@@', entityName.toLowerCase());
+    newPath = newPath.replace('@@@entities@@@', entityName.toLowerCase() + 's');
+    return newPath;
+}
+
+
+const generateFile = async (sourcePath, destPath, entityName) => {
+    const destDir = path.dirname(destPath);
+    const expansionData = {
+        entity: entityName,
+        entityLowerCase: entityName.toLowerCase(),
+    };
+
+    if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
+    }
+
+    try {
+        logVerbose(`Writing file ${destPath}...`);
+        const content = await renderFile(sourcePath, expansionData);
+        fs.writeFileSync(destPath, content);
+    } catch (err) {
+        logError(`Failed to process file ${filePath}: ${err}`);
+        return false;
+    }
+
+    return true;
+}
+
+
+// process command line
+
+program.parse();
+const entities = getEntityList(program.args);
+
+if (entities.length < 1) {
+    logFatal('At least one non-User entity must be specified');
+}
 
 setVerboseMode(true);
 
@@ -40,24 +115,18 @@ try {
 }
 
 let success = true;
-
 const templateFiles = getFileList('templates');
 
 for (const filePath of templateFiles) {
-    const destPath = filePath.replace('templates/', appDir + '/');
-    const destDir = path.dirname(destPath);
-
-    if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
+    if (filePath.match(/@@@/)) {
+        for (const entity of entities) {
+            const destPath = expandFilename(filePath.replace('templates/', appDir + '/'), entity);
+            success &&= await generateFile(filePath, destPath, entity);
+        }
     }
-
-    try {
-        logVerbose(`Writing file ${destPath}...`);
-        const content = await renderFile(filePath, data);
-        fs.writeFileSync(destPath, content);
-    } catch (err) {
-        logError(`Failed to process file ${filePath}: ${err}`);
-        success = false;
+    else {
+        const destPath = filePath.replace('templates/', appDir + '/');
+        success &&= await generateFile(filePath, destPath, "FIXME HERE");
     }
 }
 
